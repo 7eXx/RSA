@@ -6,7 +6,7 @@ import os
 import socket
 from support import algorithm
 
-IP_REC = '192.168.0.153'
+IP_REC = '192.168.35.128'
 PORT_REC = 12345
 
 if __name__ == '__main__':
@@ -22,7 +22,9 @@ if __name__ == '__main__':
     print('md5 originale: ', md5_orig)
 
     (pub_key, priv_key) = rsa.newkeys(512)
-    print(pub_key)
-    print(priv_key)
+    print('n ', pub_key.n, ' e ', pub_key.e)
+    print('n ', priv_key.n, ' p ', priv_key.p, ' q ', priv_key.q, ' d ', priv_key.d)
+
+    clientsocket.send(str(pub_key.n))
 
 

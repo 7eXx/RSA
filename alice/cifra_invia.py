@@ -6,7 +6,7 @@ import os
 import socket
 from support import algorithm
 
-IP_DEST = '192.168.0.153'
+IP_DEST = '192.168.35.128'
 PORT_DEST = 12345
 FILE_ORIG = 'f22_raptor.jpg'
 
@@ -17,5 +17,7 @@ if __name__ == '__main__':
 
     md5_orig = algorithm.get_md5(FILE_ORIG)
     sock.send(md5_orig.encode())
-    print('md5 orig: ', md5_orig)
+    print('md5 sent: ', md5_orig)
+
+
 
