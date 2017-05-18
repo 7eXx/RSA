@@ -6,15 +6,15 @@ import os
 import socket
 from support import algorithm
 
-IP_DEST = '192.168.242.130'
+IP_DEST = '192.168.0.197'
 PORT_DEST = 12345
 FILE_ORIG = 'f22_raptor.jpg'
+
 '''
 l'idea di base e' che per cominciare a dialogare, alice manda a bob
 md5 del file e quindi solo dopo bob risponde con la chiave pubblica
 quindi alice puo' cominciare a cifrare il file con le chiavi ricevute
 '''
-
 
 if __name__ == '__main__':
 
@@ -22,11 +22,17 @@ if __name__ == '__main__':
     sock.connect((IP_DEST, PORT_DEST))
 
     md5_orig = algorithm.get_md5(FILE_ORIG)
+    dim_file = os.stat(FILE_ORIG).st_size
     sock.send(md5_orig.encode())
+    sock.send(str(dim_file).zfill(20).encode())
     print('md5 sent: ', md5_orig)
+    print('size sent: ', dim_file)
 
-    n = sock.recv(10).decode()
-    e = sock.recv(10).decode()
+    n = int(sock.recv(10).decode())
+    e = int(sock.recv(10).decode())
+
+    print('n ricevuto: ', n)
+    print('e ricevuto ', e)
 
 
     sock.close()
