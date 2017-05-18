@@ -37,6 +37,10 @@ if __name__ == '__main__':
     clientsocket.send(str(pub_key.n).zfill(10).encode())
     clientsocket.send(str(pub_key.e).zfill(10).encode())
 
+    '''
+    implementare parte ricezione del file con i metodi e decifrazione dei singoli
+    chunk con la chiave privata
+    '''
 
     clientsocket.close()
     sock.close()

@@ -34,6 +34,10 @@ if __name__ == '__main__':
     print('n ricevuto: ', n)
     print('e ricevuto ', e)
 
+    '''
+    implementare crittografia chunk per chunk del file e inviare il tutto
+    '''
+
 
     sock.close()
 
