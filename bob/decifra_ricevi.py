@@ -6,11 +6,11 @@ import os
 import socket
 from support import algorithm
 
-IP_REC = '192.168.35.129'
+IP_REC = '192.168.0.203'
 PORT_REC = 12345
 
 FINAL_FILE = 'f22_raptor.jpg'
-CRYPT_FILE = 'crypted_f22.bin'
+CRYPT_FILE = 'crypted_f22.jpg'
 
 '''
 prima di iniziare la generazione delle chiavi, B attende md5 e dimensione del file
@@ -33,15 +33,15 @@ def decypher_file_a(orig_file, dest_file, padding, priv_key):
             ## decifrazione del chunk
             new_chunk = algorithm.encrypt_decrypt(priv_key, chunk)
 
-            if read_bytes == dim_file:
+            if read_bytes + len(chunk) == dim_file:
                 new_chunk = new_chunk[:-padding]
 
             ## scrittura sul file di uscita e aggiornamento lettura
             file_out.write(new_chunk)
-            read_bytes += len(new_chunk)
+            read_bytes += len(chunk)
 
             ########### stampa elaborazione avanzamento
-            print('Applicazione decifrazione RSA ', read_bytes, ' / ', dim_file)
+            print('Applicazione decifrazione RSA ', read_bytes, ' / ', dim_file, ' parte ', new_chunk)
 
     print('------ Decriptazione eseguita con RSA: ', priv_key)
     print('dimensione file iniziale: ', dim_file, 'bytes')
@@ -78,6 +78,10 @@ if __name__ == '__main__':
     ## verifica se il file esiste lo elimino
     try:
         os.remove(CRYPT_FILE)
+    except OSError:
+        pass
+    try:
+        os.remove(FINAL_FILE)
     except OSError:
         pass
 

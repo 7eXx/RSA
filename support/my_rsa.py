@@ -111,14 +111,17 @@ if __name__ == '__main__':
     print( "RSA Encrypter/ Decrypter")
     print ("Generating your public/private keypairs now . . .")
 
-    ## genera chiave a 32 bit
-    public, private = rsa.newkeys(32)
-    ## public, private = generate_keypair(algorithm.LONG_P, algorithm.LONG_Q)
+    ## genera chiave a 64 bit
+    ## public, private = rsa.newkeys(64)
+    public, private = generate_keypair(algorithm.LONG_P, algorithm.LONG_Q)
     print ("Your public key is ", public ," and your private key is ", private)
-    message = b'\x1A\x1B\x1C\x1D'
-    encrypted_msg = encrypt((public.e, public.n), message)
+    message = b'\x7f\xe5\x9f\xdc\xfe\x94\x83\xde'
+
+    ## encrypted_msg = encrypt((public.e, public.n), message)
+    encrypted_msg = encrypt(public, message)
     print ("Your encrypted message is: ")
     print (encrypted_msg)
     print("Decrypting message with public key ", public ," . . .")
     print ("Your message is: ")
-    print (decrypt((private.d, private.n), encrypted_msg))
+    ## print (decrypt((private.d, private.n), encrypted_msg))
+    print (decrypt(private, encrypted_msg))

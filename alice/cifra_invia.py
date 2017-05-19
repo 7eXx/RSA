@@ -7,10 +7,10 @@ import socket
 from support import algorithm
 from support import my_rsa
 
-IP_DEST = '192.168.35.129'
+IP_DEST = '192.168.0.203'
 PORT_DEST = 12345
 ORIG_FILE = 'f22_raptor.jpg'
-CRYPT_FILE = 'crypted_f22.bin'
+CRYPT_FILE = 'crypted_f22.jpg'
 
 '''
 l'idea di base e' che per cominciare a dialogare, alice manda a bob
@@ -39,7 +39,7 @@ def cypher_file_rsa(orig_file, dest_file, pub_key):
             read_bytes += len(new_chunk)
 
             ########### stampa elaborazione avanzamento
-            print('Cifraggio file con chiave A ...  ', read_bytes, ' / ', dim_file)
+            print('Cifraggio file con RSA ...  ', read_bytes, ' / ', dim_file, ' parte ', chunk)
 
     print('------ Criptaggio con chiave RSA  ------')
     print('chiavi: ', pub_key)
