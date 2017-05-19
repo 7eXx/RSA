@@ -1,10 +1,11 @@
 
 import hashlib
 
-DIM_LONG_KEY = 10
+DIM_LONG_KEY = 20
 DIM_SIZE_FILE = 20
 MD5_LENGTH = 32
-DIM_CHUNK_BIT = 32
+## NB modifica della lunghezza in bit del chunk
+DIM_CHUNK_BIT = 64
 DIM_PADD = 1
 DIM_CHUNK = DIM_CHUNK_BIT // 8
 DIM_KEY = DIM_CHUNK_BIT
@@ -46,5 +47,23 @@ def recv_file(sock, file_path, size_tot):
             data = sock.recv(1024)
             f.write(data)
             read_tot += len(data)
+
+## funzione per criptare e decriptare
+## se la chiave e' compatibile con il messaggio
+## la lunghezza di uscita e' coerente con l'ingresso
+## la chiave di ingresso e' composta come k, n
+def encrypt_decrypt(pk, byte_array):
+    # Unpack the key into it's components
+    key, n = pk
+    ## conversione bytes_array in intero
+    b = int.from_bytes(byte_array, byteorder='little')
+    tmp = pow(b, key, n)
+    ## conversione da intero a bytes
+    mess = tmp.to_bytes(len(byte_array), byteorder='little')
+    # Return the array of bytes
+    return mess
+
+
+
 
 

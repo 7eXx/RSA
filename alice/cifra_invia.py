@@ -5,6 +5,7 @@ import rsa
 import os
 import socket
 from support import algorithm
+from support import my_rsa
 
 IP_DEST = '192.168.35.129'
 PORT_DEST = 12345
@@ -32,7 +33,7 @@ def cypher_file_rsa(orig_file, dest_file, pub_key):
                 chunk += bytes(padding)
 
             ## cifro il chunk
-            new_chunk = rsa.encrypt(chunk, pub_key)
+            new_chunk = algorithm.encrypt_decrypt(pub_key, chunk)
             ## scrivo il file in uscita
             file_out.write(new_chunk)
             read_bytes += len(new_chunk)
@@ -40,11 +41,11 @@ def cypher_file_rsa(orig_file, dest_file, pub_key):
             ########### stampa elaborazione avanzamento
             print('Cifraggio file con chiave A ...  ', read_bytes, ' / ', dim_file)
 
-    print('------ Criptaggio con chiave A completo ! ------')
+    print('------ Criptaggio con chiave RSA  ------')
+    print('chiavi: ', pub_key)
     print('original file dimension:  ', dim_file, 'bytes')
     print('encrypted file dimension: ', read_bytes, 'bytes')
     padding = read_bytes - dim_file
-    print('necessary padding: ', padding, 'bytes')
 
     return padding
 
@@ -53,21 +54,19 @@ if __name__ == '__main__':
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((IP_DEST, PORT_DEST))
 
-    ## invio md5 e dimensione del file
+    ## invio md5 e dimensione del file originale
     md5_orig = algorithm.get_md5(ORIG_FILE)
     dim_file = os.stat(ORIG_FILE).st_size
     sock.send(md5_orig.encode())
-    sock.send(str(dim_file).zfill(20).encode())
+    sock.send(str(dim_file).zfill(algorithm.DIM_SIZE_FILE).encode())
     print('md5 sent: ', md5_orig)
     print('size sent: ', dim_file)
 
     ## ricezione della chiave pubblica
-    n = int(sock.recv(10).decode())
-    e = int(sock.recv(10).decode())
+    n = int(sock.recv(algorithm.DIM_LONG_KEY).decode())
+    e = int(sock.recv(algorithm.DIM_LONG_KEY).decode())
     print('n ricevuto: ', n)
     print('e ricevuto ', e)
-
-    pub_key = rsa.PublicKey(n,e)
 
     ## controllo se il file cifrato esiste lo elimina
     try:
@@ -75,9 +74,13 @@ if __name__ == '__main__':
     except OSError:
         pass
 
-    padd = cypher_file_rsa(ORIG_FILE, CRYPT_FILE, pub_key)
+    ## cifratura, recupero del padd necessario e invio di tale
+    padd = cypher_file_rsa(ORIG_FILE, CRYPT_FILE, (e, n))
+    print('padding necessario: ', padd, 'bytes')
+    sock.send(str(padd).zfill(algorithm.DIM_PADD).encode())
 
 
+    algorithm.send_file(sock, CRYPT_FILE)
 
 
     '''

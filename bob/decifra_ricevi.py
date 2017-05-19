@@ -20,24 +20,30 @@ da parte di A. poi genera le chiavi e manda ad A quella pubblica (n,e)
 '''
 decifratura del file secondo le chiavi
 '''
-def decypher_file_a(orig_file, dest_file, padding, keys_a):
+def decypher_file_a(orig_file, dest_file, padding, priv_key):
 
     dim_file = os.stat(orig_file).st_size
     read_bytes = 0
 
     with open(orig_file, 'rb') as file_in, open(dest_file, 'wb') as file_out:
 
-        for i in range(0, len(keys_a)):
-            chunk = file_in.read(algorithm.DIM_CHUNK_BIT // 8)
-            new_chunk = algorithm.reverse_tex_function_for_a(keys_a[i], chunk)
+        while read_bytes < dim_file:
+            ## lettura del chunk
+            chunk = file_in.read(algorithm.DIM_CHUNK)
+            ## decifrazione del chunk
+            new_chunk = algorithm.encrypt_decrypt(priv_key, chunk)
 
+            if read_bytes == dim_file:
+                new_chunk = new_chunk[:-padding]
+
+            ## scrittura sul file di uscita e aggiornamento lettura
             file_out.write(new_chunk)
             read_bytes += len(new_chunk)
 
             ########### stampa elaborazione avanzamento
-            print('Togliendo la chiave A ...  ', read_bytes, ' / ', os.stat(orig_file).st_size)
+            print('Applicazione decifrazione RSA ', read_bytes, ' / ', dim_file)
 
-    print('------ Decriptazione con A ------')
+    print('------ Decriptazione eseguita con RSA: ', priv_key)
     print('dimensione file iniziale: ', dim_file, 'bytes')
 
 
@@ -66,7 +72,24 @@ if __name__ == '__main__':
     clientsocket.send(str(pub_key.e).zfill(algorithm.DIM_LONG_KEY).encode())
 
     ## ricezione del padding utilizzato al cifraggio
-    ## clientsocket.recv()
+    padding = int(clientsocket.recv(algorithm.DIM_PADD).decode())
+    print('padding ricevuto: ', padding)
+
+    ## verifica se il file esiste lo elimino
+    try:
+        os.remove(CRYPT_FILE)
+    except OSError:
+        pass
+
+    ## ricezione del file cifrato
+    algorithm.recv_file(clientsocket, CRYPT_FILE, dim_file + padding)
+    print('file ricevuto: ', CRYPT_FILE)
+
+    decypher_file_a(CRYPT_FILE, FINAL_FILE, padding, (priv_key.d, priv_key.n))
+
+    print('md5 file finale: ', algorithm.get_md5(FINAL_FILE))
+    print('md5 file originale: ', md5_orig)
+
 
     '''
     implementare parte ricezione del file con i metodi e decifrazione dei singoli
