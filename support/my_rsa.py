@@ -84,10 +84,10 @@ def encrypt(pk, byte_array):
     #Unpack the key into it's components
     key, n = pk
     ## conversione bytes_array in intero
-    b = int.from_bytes(byte_array, byteorder='little')
+    b = int.from_bytes(byte_array, byteorder='big')
     tmp = pow(b, key, n)
     ## conversione da intero a bytes
-    cipher = tmp.to_bytes(len(byte_array),byteorder='little')
+    cipher = tmp.to_bytes(len(byte_array),byteorder='big')
     #Return the array of bytes
     return cipher
 
@@ -95,11 +95,11 @@ def decrypt(pk, byte_array):
     #Unpack the key into its components
     key, n = pk
     #Generate the plaintext based on the ciphertext and key using a^b mod m
-    b = int.from_bytes(byte_array, byteorder='little')
+    b = int.from_bytes(byte_array, byteorder='big')
     #Return the array of bytes as a string
     tmp = pow(b, key, n)
     ## conversione da intero a bytes
-    decipher = tmp.to_bytes(len(byte_array), byteorder='little')
+    decipher = tmp.to_bytes(len(byte_array), byteorder='big')
     # Return the array of bytes
     return decipher
 
@@ -113,9 +113,9 @@ if __name__ == '__main__':
 
     ## genera chiave a 64 bit
     ## public, private = rsa.newkeys(64)
-    public, private = generate_keypair(algorithm.LONG_P, algorithm.LONG_Q)
+    public, private = generate_keypair(algorithm.LONG_P_64, algorithm.LONG_Q_64)
     print ("Your public key is ", public ," and your private key is ", private)
-    message = b'\x7f\xe5\x9f\xdc\xfe\x94\x83\xde'
+    message = b'\xa8\x96\xd1\x1c\x85Xo\x93'
 
     ## encrypted_msg = encrypt((public.e, public.n), message)
     encrypted_msg = encrypt(public, message)

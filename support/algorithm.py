@@ -11,8 +11,12 @@ DIM_CHUNK = DIM_CHUNK_BIT // 8
 DIM_KEY = DIM_CHUNK_BIT
 
 ## p e q per chiave a 32 bit
-LONG_P = 131011
-LONG_Q = 25931
+LONG_P_32 = 131011
+LONG_Q_32 = 25931
+
+## p e q per chiave a 64 bit
+LONG_P_64 = 16312004521
+LONG_Q_64 = 718464377
 
 '''
 algoritmo per calcolare l'md5
@@ -56,10 +60,10 @@ def encrypt_decrypt(pk, byte_array):
     # Unpack the key into it's components
     key, n = pk
     ## conversione bytes_array in intero
-    b = int.from_bytes(byte_array, byteorder='little')
+    b = int.from_bytes(byte_array, byteorder='big')
     tmp = pow(b, key, n)
     ## conversione da intero a bytes
-    mess = tmp.to_bytes(len(byte_array), byteorder='little')
+    mess = tmp.to_bytes(len(byte_array), byteorder='big')
     # Return the array of bytes
     return mess
 
