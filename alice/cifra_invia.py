@@ -7,7 +7,7 @@ import socket
 from support import algorithm
 from support import my_rsa
 
-IP_DEST = '192.168.0.203'
+IP_DEST = '192.168.0.208'
 PORT_DEST = 12345
 ORIG_FILE = 'f22_raptor.jpg'
 CRYPT_FILE = 'crypted_f22.jpg'
@@ -36,7 +36,7 @@ def cypher_file_rsa(orig_file, dest_file, pub_key):
             new_chunk = algorithm.encrypt_decrypt(pub_key, chunk)
             ## scrivo il file in uscita
             file_out.write(new_chunk)
-            read_bytes += len(new_chunk)
+            read_bytes += len(chunk)
 
             ########### stampa elaborazione avanzamento
             print('Cifraggio file con RSA ...  ', read_bytes, ' / ', dim_file, ' parte ', chunk)
@@ -54,17 +54,14 @@ if __name__ == '__main__':
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((IP_DEST, PORT_DEST))
 
-    ## invio md5 e dimensione del file originale
+    ## invio md5
     md5_orig = algorithm.get_md5(ORIG_FILE)
-    dim_file = os.stat(ORIG_FILE).st_size
-    sock.send(md5_orig.encode())
-    sock.send(str(dim_file).zfill(algorithm.DIM_SIZE_FILE).encode())
     print('md5 sent: ', md5_orig)
-    print('size sent: ', dim_file)
+    sock.send(md5_orig.encode())
 
     ## ricezione della chiave pubblica
-    n = int(sock.recv(algorithm.DIM_LONG_KEY).decode())
-    e = int(sock.recv(algorithm.DIM_LONG_KEY).decode())
+    n = int(sock.recv(algorithm.NUM_LONG_KEY).decode())
+    e = int(sock.recv(algorithm.NUM_LONG_KEY).decode())
     print('n ricevuto: ', n)
     print('e ricevuto ', e)
 
@@ -74,19 +71,17 @@ if __name__ == '__main__':
     except OSError:
         pass
 
-    ## cifratura, recupero del padd necessario e invio di tale
+    ## cifratura, recupero del padd necessario e della dimensione del cifrato
     padd = cypher_file_rsa(ORIG_FILE, CRYPT_FILE, (e, n))
+    dim_file = os.stat(CRYPT_FILE).st_size
+    print('size sent: ', dim_file)
     print('padding necessario: ', padd, 'bytes')
+
+    sock.send(str(dim_file).zfill(algorithm.NUM_DIM_FILE).encode())
     sock.send(str(padd).zfill(algorithm.DIM_PADD).encode())
 
-
+     ## invio del file cifrato
     algorithm.send_file(sock, CRYPT_FILE)
-
-
-    '''
-    implementare crittografia chunk per chunk del file e inviare il tutto
-    '''
-
 
     sock.close()
 

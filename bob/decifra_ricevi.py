@@ -6,7 +6,7 @@ import os
 import socket
 from support import algorithm
 
-IP_REC = '192.168.0.203'
+IP_REC = '192.168.0.208'
 PORT_REC = 12345
 
 FINAL_FILE = 'f22_raptor.jpg'
@@ -29,9 +29,10 @@ def decypher_file_a(orig_file, dest_file, padding, priv_key):
 
         while read_bytes < dim_file:
             ## lettura del chunk
-            chunk = file_in.read(algorithm.DIM_CHUNK)
+            chunk = file_in.read(algorithm.DIM_KEY)
             ## decifrazione del chunk
             new_chunk = algorithm.encrypt_decrypt(priv_key, chunk)
+            new_chunk = new_chunk[algorithm.DIM_CHUNK:]
 
             if read_bytes + len(chunk) == dim_file:
                 new_chunk = new_chunk[:-padding]
@@ -58,20 +59,20 @@ if __name__ == '__main__':
 
     ## ricezione md5 e dimensione file
     md5_orig = clientsocket.recv(algorithm.MD5_LENGTH).decode()
-    dim_file = int(clientsocket.recv(algorithm.DIM_SIZE_FILE).decode())
     print('md5 originale: ', md5_orig)
-    print('dimensione originale ', dim_file)
 
     ## generazione delle due chiavi pubblica e privata
-    (pub_key, priv_key) = rsa.newkeys(algorithm.DIM_KEY)
+    (pub_key, priv_key) = rsa.newkeys(algorithm.DIM_KEY_BIT)
     print('n ', pub_key.n, ' e ', pub_key.e)
     print('n ', priv_key.n, ' p ', priv_key.p, ' q ', priv_key.q, ' d ', priv_key.d)
 
     ## invio della chiave pubblica e ed n
-    clientsocket.send(str(pub_key.n).zfill(algorithm.DIM_LONG_KEY).encode())
-    clientsocket.send(str(pub_key.e).zfill(algorithm.DIM_LONG_KEY).encode())
+    clientsocket.send(str(pub_key.n).zfill(algorithm.NUM_LONG_KEY).encode())
+    clientsocket.send(str(pub_key.e).zfill(algorithm.NUM_LONG_KEY).encode())
 
-    ## ricezione del padding utilizzato al cifraggio
+    ## ricezione del padding utilizzato al cifraggio e della dimensione del file cifrato
+    dim_file = int(clientsocket.recv(algorithm.NUM_DIM_FILE).decode())
+    print('dimensione originale ', dim_file)
     padding = int(clientsocket.recv(algorithm.DIM_PADD).decode())
     print('padding ricevuto: ', padding)
 
@@ -86,19 +87,13 @@ if __name__ == '__main__':
         pass
 
     ## ricezione del file cifrato
-    algorithm.recv_file(clientsocket, CRYPT_FILE, dim_file + padding)
+    algorithm.recv_file(clientsocket, CRYPT_FILE, dim_file)
     print('file ricevuto: ', CRYPT_FILE)
 
     decypher_file_a(CRYPT_FILE, FINAL_FILE, padding, (priv_key.d, priv_key.n))
 
     print('md5 file finale: ', algorithm.get_md5(FINAL_FILE))
     print('md5 file originale: ', md5_orig)
-
-
-    '''
-    implementare parte ricezione del file con i metodi e decifrazione dei singoli
-    chunk con la chiave privata
-    '''
 
     clientsocket.close()
     sock.close()

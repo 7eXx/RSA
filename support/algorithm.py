@@ -1,15 +1,20 @@
 
 import hashlib
 
-DIM_LONG_KEY = 20
-DIM_SIZE_FILE = 20
+NUM_LONG_KEY = 20       ## campo del protocollo che identifica quante cifre ha la chiave 2^DIM_KEY_BIT
+NUM_DIM_FILE = 20       ## campo del protocollo che identifica quante cifre ha il file
 MD5_LENGTH = 32
 ## NB modifica della lunghezza in bit del chunk
-DIM_CHUNK_BIT = 64
+DIM_CHUNK_BIT = 32
 DIM_PADD = 1
 DIM_CHUNK = DIM_CHUNK_BIT // 8
-DIM_KEY = DIM_CHUNK_BIT
+## lunghezza della chiave
+## NB la chiave deve essere maggiore del chunk
+## altrimenti si che funziona il crittosistema
+DIM_KEY_BIT = DIM_CHUNK_BIT*2
+DIM_KEY = DIM_KEY_BIT // 8
 
+## costanti per la generazione manuale delle chiavi
 ## p e q per chiave a 32 bit
 LONG_P_32 = 131011
 LONG_Q_32 = 25931
@@ -63,7 +68,7 @@ def encrypt_decrypt(pk, byte_array):
     b = int.from_bytes(byte_array, byteorder='big')
     tmp = pow(b, key, n)
     ## conversione da intero a bytes
-    mess = tmp.to_bytes(len(byte_array), byteorder='big')
+    mess = tmp.to_bytes(DIM_KEY, byteorder='big')
     # Return the array of bytes
     return mess
 
