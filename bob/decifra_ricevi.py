@@ -6,7 +6,7 @@ import os
 import socket
 from support import algorithm
 
-IP_REC = '192.168.0.208'
+IP_REC = '192.168.0.215'
 PORT_REC = 12345
 
 FINAL_FILE = 'f22_raptor.jpg'

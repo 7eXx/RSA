@@ -7,7 +7,7 @@ import socket
 from support import algorithm
 from support import my_rsa
 
-IP_DEST = '192.168.0.208'
+IP_DEST = '192.168.0.215'
 PORT_DEST = 12345
 ORIG_FILE = 'f22_raptor.jpg'
 CRYPT_FILE = 'crypted_f22.jpg'
