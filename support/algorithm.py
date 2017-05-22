@@ -1,11 +1,11 @@
 
 import hashlib
 
-NUM_LONG_KEY = 20       ## campo del protocollo che identifica quante cifre ha la chiave 2^DIM_KEY_BIT
+NUM_LONG_KEY = 5       ## campo del protocollo che identifica quante cifre ha la chiave 2^DIM_KEY_BIT
 NUM_DIM_FILE = 20       ## campo del protocollo che identifica quante cifre ha il file
 MD5_LENGTH = 32
 ## NB modifica della lunghezza in bit del chunk
-DIM_CHUNK_BIT = 32
+DIM_CHUNK_BIT = 8
 DIM_PADD = 1
 DIM_CHUNK = DIM_CHUNK_BIT // 8
 ## lunghezza della chiave
@@ -22,6 +22,10 @@ LONG_Q_32 = 25931
 ## p e q per chiave a 64 bit
 LONG_P_64 = 16312004521
 LONG_Q_64 = 718464377
+
+## costanti piccole per bruteforce
+SMALL_P = 5
+SMALL_Q = 53
 
 '''
 algoritmo per calcolare l'md5

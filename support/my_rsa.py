@@ -80,28 +80,31 @@ def generate_keypair(p, q):
     #Public key is (e, n) and private key is (d, n)
     return ((e, n), (d, n))
 
+## funzione per criptare e decriptare
+## se la chiave e' compatibile con il messaggio
+## la lunghezza di uscita e' coerente con l'ingresso
+## la chiave di ingresso e' composta come k, n
 def encrypt(pk, byte_array):
-    #Unpack the key into it's components
+    # Unpack the key into it's components
     key, n = pk
     ## conversione bytes_array in intero
     b = int.from_bytes(byte_array, byteorder='big')
     tmp = pow(b, key, n)
     ## conversione da intero a bytes
-    cipher = tmp.to_bytes(len(byte_array),byteorder='big')
-    #Return the array of bytes
-    return cipher
+    mess = tmp.to_bytes(algorithm.DIM_KEY, byteorder='big')
+    # Return the array of bytes
+    return mess
 
 def decrypt(pk, byte_array):
-    #Unpack the key into its components
+    # Unpack the key into it's components
     key, n = pk
-    #Generate the plaintext based on the ciphertext and key using a^b mod m
+    ## conversione bytes_array in intero
     b = int.from_bytes(byte_array, byteorder='big')
-    #Return the array of bytes as a string
     tmp = pow(b, key, n)
     ## conversione da intero a bytes
-    decipher = tmp.to_bytes(len(byte_array), byteorder='big')
+    mess = tmp.to_bytes(algorithm.DIM_CHUNK, byteorder='big')
     # Return the array of bytes
-    return decipher
+    return mess
 
 
 if __name__ == '__main__':

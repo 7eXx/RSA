@@ -7,10 +7,14 @@ import socket
 from support import algorithm
 from support import my_rsa
 
-IP_DEST = '192.168.0.208'
-PORT_DEST = 12345
-ORIG_FILE = 'f22_raptor.jpg'
-CRYPT_FILE = 'crypted_f22.jpg'
+IP_DEST_B = '192.168.35.129'
+IP_DEST_C = '192.168.35.129'
+
+PORT_DEST_B = 12345
+PORT_DEST_C = 23456
+
+ORIG_FILE = 'box.jpg'
+CRYPT_FILE = 'crypted_box.jpg'
 
 '''
 l'idea di base e' che per cominciare a dialogare, alice manda a bob
@@ -51,17 +55,18 @@ def cypher_file_rsa(orig_file, dest_file, pub_key):
 
 if __name__ == '__main__':
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((IP_DEST, PORT_DEST))
+    sock_B = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock_B.connect((IP_DEST_B, PORT_DEST_B))
 
     ## invio md5
     md5_orig = algorithm.get_md5(ORIG_FILE)
     print('md5 sent: ', md5_orig)
-    sock.send(md5_orig.encode())
+    sock_B.send(md5_orig.encode())
+
 
     ## ricezione della chiave pubblica
-    n = int(sock.recv(algorithm.NUM_LONG_KEY).decode())
-    e = int(sock.recv(algorithm.NUM_LONG_KEY).decode())
+    n = int(sock_B.recv(algorithm.NUM_LONG_KEY).decode())
+    e = int(sock_B.recv(algorithm.NUM_LONG_KEY).decode())
     print('n ricevuto: ', n)
     print('e ricevuto ', e)
 
@@ -77,13 +82,12 @@ if __name__ == '__main__':
     print('size sent: ', dim_file)
     print('padding necessario: ', padd, 'bytes')
 
-    sock.send(str(dim_file).zfill(algorithm.NUM_DIM_FILE).encode())
-    sock.send(str(padd).zfill(algorithm.DIM_PADD).encode())
+    sock_B.send(str(dim_file).zfill(algorithm.NUM_DIM_FILE).encode())
+    sock_B.send(str(padd).zfill(algorithm.DIM_PADD).encode())
 
      ## invio del file cifrato
-    algorithm.send_file(sock, CRYPT_FILE)
+    algorithm.send_file(sock_B, CRYPT_FILE)
 
-    sock.close()
-
+    sock_B.close()
 
 

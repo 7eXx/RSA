@@ -4,13 +4,18 @@ utilizzo della libreria rsa per criptare e decriptare
 import rsa
 import os
 import socket
+import threading
 from support import algorithm
+from support import  my_rsa
 
-IP_REC = '192.168.0.208'
+IP_REC = '192.168.35.129'
 PORT_REC = 12345
 
-FINAL_FILE = 'f22_raptor.jpg'
-CRYPT_FILE = 'crypted_f22.jpg'
+IP_DEST_C = '192.168.35.129'
+PORT_DEST_C = 23456
+
+FINAL_FILE = 'box.jpg'
+CRYPT_FILE = 'crypted_box.jpg'
 
 '''
 prima di iniziare la generazione delle chiavi, B attende md5 e dimensione del file
@@ -20,7 +25,34 @@ da parte di A. poi genera le chiavi e manda ad A quella pubblica (n,e)
 '''
 decifratura del file secondo le chiavi
 '''
-def decypher_file_a(orig_file, dest_file, padding, priv_key):
+
+class Send_Thread(threading.Thread):
+    def __init__(self, md5_orig, pub_n, pub_e, dim_file, padding, send_path):
+        threading.Thread.__init__(self)
+        self.md5_orig = md5_orig
+        self.pub_n = pub_n
+        self.pub_e = pub_e
+        self.dim_file = dim_file
+        self.padding = padding
+        self.send_path = send_path
+
+    def run(self):
+        sock_C = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock_C.connect((IP_DEST_C, PORT_DEST_C))
+
+        sock_C.send(md5_orig.encode())
+        sock_C.send(str(self.pub_n).zfill(algorithm.NUM_LONG_KEY).encode())
+        sock_C.send(str(self.pub_e).zfill(algorithm.NUM_LONG_KEY).encode())
+
+        sock_C.send(str(self.dim_file).zfill(algorithm.NUM_DIM_FILE).encode())
+        sock_C.send(str(self.padding).zfill(algorithm.DIM_PADD).encode())
+
+        ## invio del file cifrato
+        algorithm.send_file(sock_C, self.send_path)
+
+        sock_C.close()
+
+def decypher_file(orig_file, dest_file, padding, priv_key):
 
     dim_file = os.stat(orig_file).st_size
     read_bytes = 0
@@ -30,12 +62,12 @@ def decypher_file_a(orig_file, dest_file, padding, priv_key):
         while read_bytes < dim_file:
             ## lettura del chunk
             chunk = file_in.read(algorithm.DIM_KEY)
-            ## decifrazione del chunk
+            ## decifrazione del chunk ed eliminazione parte significativa
             new_chunk = algorithm.encrypt_decrypt(priv_key, chunk)
             new_chunk = new_chunk[algorithm.DIM_CHUNK:]
 
             if read_bytes + len(chunk) == dim_file:
-                new_chunk = new_chunk[:-padding]
+                new_chunk = new_chunk[:algorithm.DIM_CHUNK-padding]
 
             ## scrittura sul file di uscita e aggiornamento lettura
             file_out.write(new_chunk)
@@ -46,7 +78,6 @@ def decypher_file_a(orig_file, dest_file, padding, priv_key):
 
     print('------ Decriptazione eseguita con RSA: ', priv_key)
     print('dimensione file iniziale: ', dim_file, 'bytes')
-
 
 if __name__ == '__main__':
 
@@ -62,13 +93,17 @@ if __name__ == '__main__':
     print('md5 originale: ', md5_orig)
 
     ## generazione delle due chiavi pubblica e privata
-    (pub_key, priv_key) = rsa.newkeys(algorithm.DIM_KEY_BIT)
-    print('n ', pub_key.n, ' e ', pub_key.e)
-    print('n ', priv_key.n, ' p ', priv_key.p, ' q ', priv_key.q, ' d ', priv_key.d)
+    pub_key, priv_key = my_rsa.generate_keypair(algorithm.SMALL_P, algorithm.SMALL_Q)
 
-    ## invio della chiave pubblica e ed n
-    clientsocket.send(str(pub_key.n).zfill(algorithm.NUM_LONG_KEY).encode())
-    clientsocket.send(str(pub_key.e).zfill(algorithm.NUM_LONG_KEY).encode())
+    pub_e, pub_n = pub_key
+    priv_d, priv_n = priv_key
+
+    print('n ', pub_n, ' e ', pub_e)
+    print('n ', priv_n,' d ', priv_d)
+
+    ## invio della chiave pubblica n ed e
+    clientsocket.send(str(pub_n).zfill(algorithm.NUM_LONG_KEY).encode())
+    clientsocket.send(str(pub_e).zfill(algorithm.NUM_LONG_KEY).encode())
 
     ## ricezione del padding utilizzato al cifraggio e della dimensione del file cifrato
     dim_file = int(clientsocket.recv(algorithm.NUM_DIM_FILE).decode())
@@ -90,7 +125,12 @@ if __name__ == '__main__':
     algorithm.recv_file(clientsocket, CRYPT_FILE, dim_file)
     print('file ricevuto: ', CRYPT_FILE)
 
-    decypher_file_a(CRYPT_FILE, FINAL_FILE, padding, (priv_key.d, priv_key.n))
+    ## thread sottobanco che invia tutto ad C
+    t_send = Send_Thread(md5_orig, pub_n, pub_e, dim_file, padding, CRYPT_FILE)
+    t_send.start()
+
+    ## decifraggio file
+    decypher_file(CRYPT_FILE, FINAL_FILE, padding, (priv_d, priv_n))
 
     print('md5 file finale: ', algorithm.get_md5(FINAL_FILE))
     print('md5 file originale: ', md5_orig)
